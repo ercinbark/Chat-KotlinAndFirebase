@@ -94,11 +94,32 @@ class SohbetActivity : AppCompatActivity() {
                     Toast.LENGTH_SHORT
                 ).show()
 
-                rcSohbetOdalari.layoutManager= LinearLayoutManager(this@SohbetActivity) as RecyclerView.LayoutManager?
-                rcSohbetOdalari.adapter=SohbetOdasiRecyclerViewAdapter(tumSohbetOdalari)
+                sohbetOdalariListele()
             }
 
         })
+
+    }
+
+    private fun sohbetOdalariListele() {
+        rcSohbetOdalari.adapter = SohbetOdasiRecyclerViewAdapter(this@SohbetActivity, tumSohbetOdalari)
+        rcSohbetOdalari.layoutManager = LinearLayoutManager(this@SohbetActivity, LinearLayoutManager.VERTICAL, false)
+
+    }
+
+    fun sohbetOdasiSil(silinecekSohbetOdasiID: String) {
+
+        var ref = FirebaseDatabase.getInstance().reference
+        ref.child("sohbet_odasi")
+            .child(silinecekSohbetOdasiID)
+            .removeValue()
+
+        Toast.makeText(
+            this@SohbetActivity,
+            "Sohbet odasi silindi!!!",
+            Toast.LENGTH_SHORT
+        ).show()
+        init()
 
     }
 }
