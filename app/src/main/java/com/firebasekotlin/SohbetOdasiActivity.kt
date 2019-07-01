@@ -156,6 +156,8 @@ class SohbetOdasiActivity : AppCompatActivity() {
                                     var buluunanKullanici = dataSnapshot.children.iterator().next()
                                     geciciMesajlar.profil_resmi = buluunanKullanici.getValue(Kullanici::class.java)?.profil_resmi
                                     geciciMesajlar.adi = buluunanKullanici.getValue(Kullanici::class.java)?.isim
+
+                                    myAdapter?.notifyDataSetChanged()
                                 }
                             })
 

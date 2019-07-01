@@ -27,10 +27,15 @@
                           android:orientation="vertical"
                           android:gravity="center">
 
-                <ImageView android:layout_width="56dp"
-                           android:layout_height="56dp"
-                           android:src="@drawable/ic_action_user"
-                           android:id="@+id/imgMesajProfilResim"/>
+                <de.hdodenhof.circleimageview.CircleImageView
+                        android:layout_width="56dp"
+                        android:layout_height="56dp"
+                        tools:src="@drawable/ic_action_user"
+                        android:layout_centerInParent="true"
+                        app:civ_border_width="2dp"
+                        app:civ_border_color="@color/colorAccent"
+                        android:scaleType="centerCrop"
+                        android:id="@+id/imgMesajProfilResim"/>
                 <TextView
                         android:id="@+id/tvMesajUserAd"
                         android:layout_width="wrap_content"
