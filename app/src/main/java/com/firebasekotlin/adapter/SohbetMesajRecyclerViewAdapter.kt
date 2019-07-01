@@ -6,6 +6,7 @@ import android.support.v7.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.RelativeLayout
 import com.bumptech.glide.Glide
 import com.firebasekotlin.R
 import com.firebasekotlin.model.SohbetMesaj
@@ -52,7 +53,7 @@ class SohbetMesajRecyclerViewAdapter(context: Context, tumMesajlar: ArrayList<So
 
     inner class SohbetMesajViewHolder(itemview: View) : RecyclerView.ViewHolder(itemview) {
 
-        var tumLayout = itemview as ConstraintLayout
+        var tumLayout = itemview as RelativeLayout
 
         var profilResim = tumLayout.imgMesajProfilResim
         var mesaj = tumLayout.tvMesaj

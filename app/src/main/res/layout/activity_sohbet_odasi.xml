@@ -9,30 +9,42 @@
 
 
     <android.support.v7.widget.RecyclerView
-            android:layout_width="394dp"
-            android:layout_height="500dp" android:layout_marginTop="8dp"
-            app:layout_constraintTop_toTopOf="parent" app:layout_constraintStart_toStartOf="parent"
-            android:layout_marginStart="8dp" app:layout_constraintEnd_toEndOf="parent" android:layout_marginEnd="8dp"
-            app:layout_constraintBottom_toBottomOf="parent" android:layout_marginBottom="8dp"
-            app:layout_constraintHorizontal_bias="0.0" app:layout_constraintVertical_bias="0.094"
-            android:id="@+id/rcMesajlar"/>
-    <EditText
-            android:layout_width="282dp"
-            android:layout_height="42dp"
-            android:inputType="textPersonName"
-            android:text="Name"
-            android:ems="10"
-            android:id="@+id/etYeniMesaj" android:layout_marginTop="8dp"
-            app:layout_constraintTop_toBottomOf="@+id/rcMesajlar" android:layout_marginStart="8dp"
-            app:layout_constraintStart_toStartOf="parent" android:layout_marginBottom="8dp"
-            app:layout_constraintBottom_toBottomOf="parent"/>
-    <Button
-            android:text="Button"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:id="@+id/btnMesajGonder" app:layout_constraintEnd_toEndOf="parent" android:layout_marginEnd="8dp"
-            android:layout_marginTop="8dp" app:layout_constraintTop_toBottomOf="@+id/rcMesajlar"
-            app:layout_constraintStart_toEndOf="@+id/etYeniMesaj" android:layout_marginStart="8dp"
-            android:layout_marginBottom="8dp" app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintHorizontal_bias="0.906" app:layout_constraintVertical_bias="0.428"/>
+            android:layout_marginTop="8dp"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            android:layout_marginStart="8dp" app:layout_constraintEnd_toEndOf="parent" android:layout_marginEnd="8dp"
+            app:layout_constraintHorizontal_bias="0.0"
+            android:id="@+id/rcMesajlar" android:layout_marginBottom="8dp"
+            app:layout_constraintBottom_toTopOf="@+id/relativeLayout"
+            app:layout_constraintVertical_bias="0.0"
+            android:paddingBottom="68dp"/>
+
+    <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            android:padding="4dp"
+            android:id="@+id/relativeLayout"
+            android:background="@color/colorAccent"
+            android:gravity="center_vertical">
+        <EditText
+                android:layout_width="350dp"
+                android:layout_height="42dp"
+                android:inputType="textPersonName"
+                android:ems="10"
+                android:id="@+id/etYeniMesaj"
+                android:hint="Mesajınız"
+                android:textColorHint="#FFF"/>
+        <ImageView
+                android:text="Button"
+                android:layout_width="56dp"
+                android:layout_height="56dp"
+                android:id="@+id/btnMesajGonder"
+                android:layout_toEndOf="@+id/etYeniMesaj"
+                android:layout_alignParentEnd="true"
+                android:src="@drawable/ic_send"/>
+    </RelativeLayout>
+
 </android.support.constraint.ConstraintLayout>
