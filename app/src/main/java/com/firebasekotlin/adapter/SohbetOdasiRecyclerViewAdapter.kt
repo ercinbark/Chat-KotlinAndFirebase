@@ -111,12 +111,31 @@ class SohbetOdasiRecyclerViewAdapter(mActivity: AppCompatActivity, tumSohbetOdal
 
             tekSatirSohbetOdasiLayout.setOnClickListener {
 
+                /**
+                 * sohbet odasina giren kullaniclarin tokenlarini kaydet
+                 * bildirim için
+                 * kullaniciyiSohbetOdasinaKaydet()
+                 */
+                kullaniciyiSohbetOdasinaKaydet(oAnOlusturulanSohbetOdasi)
+
                 var intent = Intent(myActivity, SohbetOdasiActivity::class.java)
                 intent.putExtra("sohbetOdasiId",oAnOlusturulanSohbetOdasi.sohbetOdasi_id)
                 myActivity.startActivity(intent)
 
 
             }
+        }
+
+        private fun kullaniciyiSohbetOdasinaKaydet(oAnOlusturulanSohbetOdasi: SohbetOdasi) {
+
+            var ref=FirebaseDatabase.getInstance().reference
+                .child("sohbet_odasi")
+                .child(oAnOlusturulanSohbetOdasi.sohbetOdasi_id)
+                .child("sohbet_odasindaki_kullanicilar")
+                .child(FirebaseAuth.getInstance().currentUser?.uid)
+                .child("okunan_mesaj_sayisi")
+                .setValue((oAnOlusturulanSohbetOdasi.sohbet_odasi_mesajlari)?.size.toString())
+
         }
 
     }
