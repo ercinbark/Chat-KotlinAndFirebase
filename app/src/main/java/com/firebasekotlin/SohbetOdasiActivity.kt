@@ -18,11 +18,11 @@ import kotlin.collections.ArrayList
 import kotlin.collections.HashSet
 
 class SohbetOdasiActivity : AppCompatActivity() {
-    //lateinit var tumMesajlar: ArrayList<SohbetMesaj>
 
     //Firebase
     var mAuthListener: FirebaseAuth.AuthStateListener? = null
     var myMesajReferans: DatabaseReference? = null
+    var SERVER_KEY: String? = null
 
     var secilenSohbetOdasiID: String? = null
     var tumMesajlar: ArrayList<SohbetMesaj>? = null
@@ -40,9 +40,29 @@ class SohbetOdasiActivity : AppCompatActivity() {
         //sohbet activityden gelen seçilen sohbet odasinin id bilgisini alır ve valueEventListener kaydı yapar
         sohbetOdasiniOgren()
 
+        //serverKey okuma()
+        serverKeyOku()
 
+        //mesajGönder
         initMesajGönder()
 
+    }
+
+    private fun serverKeyOku() {
+        var ref = FirebaseDatabase.getInstance().reference
+            .child("server")
+            .orderByValue()
+        ref.addListenerForSingleValueEvent(object : ValueEventListener {
+            override fun onCancelled(p0: DatabaseError?) {
+
+            }
+
+            override fun onDataChange(p0: DataSnapshot?) {
+                var singleSnapShot = p0?.children?.iterator()?.next()
+                SERVER_KEY = singleSnapShot!!.getValue().toString()
+                Log.e("SERVER_KEY", SERVER_KEY)
+            }
+        })
     }
 
     private fun initMesajGönder() {
@@ -154,7 +174,8 @@ class SohbetOdasiActivity : AppCompatActivity() {
 
                                 override fun onDataChange(dataSnapshot: DataSnapshot) {
                                     var buluunanKullanici = dataSnapshot.children.iterator().next()
-                                    geciciMesajlar.profil_resmi = buluunanKullanici.getValue(Kullanici::class.java)?.profil_resmi
+                                    geciciMesajlar.profil_resmi =
+                                        buluunanKullanici.getValue(Kullanici::class.java)?.profil_resmi
                                     geciciMesajlar.adi = buluunanKullanici.getValue(Kullanici::class.java)?.isim
 
                                     myAdapter?.notifyDataSetChanged()

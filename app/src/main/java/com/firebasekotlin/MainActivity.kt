@@ -6,6 +6,8 @@ import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.iid.FirebaseInstanceId
 import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity() {
@@ -16,9 +18,24 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         initAuthStateListener()
+        initFCM()
 
 
     }
+
+    private fun initFCM() {
+        var token=FirebaseInstanceId.getInstance().token
+        tokenVeriTabanianaKaydet(token)
+    }
+
+    private fun tokenVeriTabanianaKaydet(refreshedToken: String?) {
+        var ref= FirebaseDatabase.getInstance().reference
+            .child("kullanici")
+            .child(FirebaseAuth.getInstance().currentUser?.uid)
+            .child("mesaj_token")
+            .setValue(refreshedToken)
+    }
+
     private fun setKullaniciBilgileri() {
         var kullanici=FirebaseAuth.getInstance().currentUser
         if (kullanici!=null){
