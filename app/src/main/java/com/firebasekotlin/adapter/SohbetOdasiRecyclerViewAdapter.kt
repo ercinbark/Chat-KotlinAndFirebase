@@ -131,7 +131,7 @@ class SohbetOdasiRecyclerViewAdapter(mActivity: AppCompatActivity, tumSohbetOdal
             var ref=FirebaseDatabase.getInstance().reference
                 .child("sohbet_odasi")
                 .child(oAnOlusturulanSohbetOdasi.sohbetOdasi_id)
-                .child("sohbet_odasindaki_kullanicilar")
+                .child("odadaki_kullanicilar")
                 .child(FirebaseAuth.getInstance().currentUser?.uid)
                 .child("okunan_mesaj_sayisi")
                 .setValue((oAnOlusturulanSohbetOdasi.sohbet_odasi_mesajlari)?.size.toString())

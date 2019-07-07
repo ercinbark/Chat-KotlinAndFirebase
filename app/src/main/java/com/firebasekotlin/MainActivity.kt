@@ -3,6 +3,7 @@ package com.firebasekotlin
 import android.content.Intent
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import com.google.firebase.auth.FirebaseAuth
@@ -19,8 +20,20 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
         initAuthStateListener()
         initFCM()
+        getPendingIntent()
 
 
+    }
+
+    private fun getPendingIntent() {
+        var gelenIntent=intent
+
+        if (gelenIntent.hasExtra("sohbet_odasi_id")){
+            var intent=Intent(this,SohbetOdasiActivity::class.java)
+            intent.putExtra("sohbet_odasi_id",gelenIntent.getStringExtra("sohbet_odasi_id"))
+            startActivity(intent)
+            Log.e("sID","MainActivity : "+gelenIntent.getStringExtra("sohbet_odasi_id"))
+        }
     }
 
     private fun initFCM() {
