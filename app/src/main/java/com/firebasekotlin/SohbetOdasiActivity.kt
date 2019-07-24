@@ -5,19 +5,31 @@ import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.support.v7.widget.LinearLayoutManager
 import android.util.Log
-import com.bumptech.glide.Glide.init
 import com.firebasekotlin.adapter.SohbetMesajRecyclerViewAdapter
+import com.firebasekotlin.interfaces.FCMInterface
+import com.firebasekotlin.model.FCMModel
 import com.firebasekotlin.model.Kullanici
 import com.firebasekotlin.model.SohbetMesaj
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.*
 import kotlinx.android.synthetic.main.activity_sohbet_odasi.*
+import kotlinx.android.synthetic.main.tek_satir_sohbet_odasi.*
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
+import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.collections.ArrayList
+import kotlin.collections.HashMap
 import kotlin.collections.HashSet
 
 class SohbetOdasiActivity : AppCompatActivity() {
+
+    companion object {
+        var activityAcikMi: Boolean = false
+    }
 
     //Firebase
     var mAuthListener: FirebaseAuth.AuthStateListener? = null
@@ -29,10 +41,10 @@ class SohbetOdasiActivity : AppCompatActivity() {
     var mesajIDSet: HashSet<String>? = null
     var myAdapter: SohbetMesajRecyclerViewAdapter? = null
 
+    var BASE_URL = "https://fcm.googleapis.com/fcm/"
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_sohbet_odasi)
-        //sohbetOdasiMesajlariGetir()
 
         //kullanıcın giriş-çıkıs işlemlerini dinler
         baslatFirebaseAuthListener()
@@ -86,16 +98,90 @@ class SohbetOdasiActivity : AppCompatActivity() {
                 var yeniMesaj = referans.push().key
                 referans.child(yeniMesaj!!).setValue(kaydedilecekMesaj)
 
-                etYeniMesaj.setText("")
+
+                /**
+                 * mesaj atılan sohbet odasında,kullanıcılara bildirim gönderme işlemi
+                 */
+                var retrofit = Retrofit.Builder()
+                    .baseUrl(BASE_URL)
+                    .addConverterFactory(
+                        GsonConverterFactory.create()
+                    ).build()
+
+                var myInterface = retrofit.create(FCMInterface::class.java)
+
+                var headers = HashMap<String, String>()
+                headers.put("Content-Type", "application/json")
+                headers.put("Authorization", "key=" + SERVER_KEY)
+
+
+                var ref = FirebaseDatabase.getInstance().reference
+                    .child("sohbet_odasi")
+                    .child(secilenSohbetOdasiID)
+                    .child("odadaki_kullanicilar")
+                    .orderByKey().addListenerForSingleValueEvent(object : ValueEventListener {
+                        override fun onCancelled(p0: DatabaseError?) {
+
+                        }
+
+                        override fun onDataChange(dataSnapshot: DataSnapshot?) {
+                            for (kullaniciID in dataSnapshot!!.children) {
+                                var id = kullaniciID.key
+
+                                if (!id.equals(FirebaseAuth.getInstance().currentUser?.uid)) {
+
+                                    var ref = FirebaseDatabase.getInstance().reference
+                                        .child("kullanici")
+                                        .orderByKey()
+                                        .equalTo(id).addListenerForSingleValueEvent(object : ValueEventListener {
+                                            override fun onCancelled(p0: DatabaseError?) {
+
+                                            }
+
+                                            override fun onDataChange(dataSnapshot: DataSnapshot?) {
+                                                var tekKullanici = dataSnapshot?.children?.iterator()?.next()
+
+                                                var kullaniciMesajToken = tekKullanici?.getValue(Kullanici::class.java)?.mesaj_token
+
+
+                                                var data = FCMModel.Data(
+                                                    "Yeni Mesaj",
+                                                    etYeniMesaj.text.toString(),
+                                                    "Sohbet",
+                                                    secilenSohbetOdasiID
+                                                )
+
+                                                var bildirim = FCMModel(kullaniciMesajToken!!, data)
+
+                                                var istek = myInterface.bildirimleriGonder(headers, bildirim)
+                                                istek.enqueue(object : Callback<Response<FCMModel>> {
+                                                    override fun onFailure(
+                                                        call: Call<Response<FCMModel>>,
+                                                        t: Throwable
+                                                    ) {
+                                                        Log.e("RETROFIT", "HATA : " + t.message)
+                                                    }
+
+                                                    override fun onResponse(
+                                                        call: Call<Response<FCMModel>>,
+                                                        response: Response<Response<FCMModel>>
+                                                    ) {
+                                                        Log.e("RETROFIT", "BASARILI : " + response.toString())
+                                                    }
+                                                })
+
+                                                etYeniMesaj.setText("")
+
+                                            }
+                                        })
+
+                                }
+                            }
+                        }
+
+                    })
 
             }
-
-
-        }
-
-
-        etYeniMesaj.setOnClickListener {
-            rcMesajlar.smoothScrollToPosition(myAdapter!!.itemCount - 1)
         }
     }
 
@@ -104,10 +190,54 @@ class SohbetOdasiActivity : AppCompatActivity() {
         return sdf.format(Date())
     }
 
-    private fun sohbetOdasiniOgren() {
-        secilenSohbetOdasiID = intent.getStringExtra("sohbetOdasiId")
-        baslatMesajListener()
+    private fun bildirimeGoreListele() {
+        var gelenIntent = intent
+        Log.e("sID", "SohbetOdasiActivity : " + gelenIntent.getStringExtra("sohbet_odasi_id"))
+        if (intent.hasExtra("sohbet_odasi_id")) {
+            secilenSohbetOdasiID = intent.getStringExtra("sohbet_odasi_id")
+            baslatMesajListener()
 
+        }
+
+
+    }
+
+    private fun sohbetOdasiniOgren() {
+        //secilenSohbetOdasiID = intent.getStringExtra("sohbetOdasiId")
+        //baslatMesajListener()
+
+        /**
+         * Notification ile açıldığında tetiklenir
+         */
+        if (intent.getStringExtra("sohbet_odasi_id") != null) {
+            secilenSohbetOdasiID = intent.getStringExtra("sohbet_odasi_id")
+            Log.e("sID", "Notificaiton : " + intent.getStringExtra("sohbet_odasi_id"))
+        } else {
+            /**
+             * SohbetOdasi listesinden seçim yapıldığında tetiklenir
+             */
+            secilenSohbetOdasiID = intent.getStringExtra("sohbetOdasiId")
+            Log.e("sID", "OnClickRecyclerView : " + intent.getStringExtra("sohbetOdasiId"))
+            var secilenSohbetOdasiAdi: String? = null
+            var ref = FirebaseDatabase.getInstance().reference
+                .child("sohbet_odasi")
+                .child(secilenSohbetOdasiID)
+                .child("sohbetodasi_adi")
+                .addListenerForSingleValueEvent(object : ValueEventListener {
+                    override fun onCancelled(p0: DatabaseError?) {
+
+                    }
+
+                    override fun onDataChange(p0: DataSnapshot?) {
+                        //var singleSnapShot = p0?.children?.iterator()?.next()
+                        secilenSohbetOdasiAdi = p0?.value.toString()
+                        //tvSohbetOdasiAdi.text=secilenSohbetOdasiAdi
+                    }
+
+                })
+        }
+
+        baslatMesajListener()
 
     }
 
@@ -127,7 +257,19 @@ class SohbetOdasiActivity : AppCompatActivity() {
 
         override fun onDataChange(p0: DataSnapshot) {
             sohbetOdasindakiMesajlariGetir()
+            if (activityAcikMi)
+                gorunenMesajSayisiniGuncelle(p0?.childrenCount.toInt())
         }
+    }
+
+    private fun gorunenMesajSayisiniGuncelle(toplamMesaj: Int) {
+        var ref = FirebaseDatabase.getInstance().reference
+            .child("sohbet_odasi")
+            .child(secilenSohbetOdasiID)
+            .child("odadaki_kullanicilar")
+            .child(FirebaseAuth.getInstance().currentUser?.uid)
+            .child("okunan_mesaj_sayisi")
+            .setValue(toplamMesaj)
     }
 
     private fun sohbetOdasindakiMesajlariGetir() {
@@ -234,11 +376,13 @@ class SohbetOdasiActivity : AppCompatActivity() {
 
     override fun onStart() {
         super.onStart()
+        activityAcikMi = true
         FirebaseAuth.getInstance().addAuthStateListener(mAuthListener!!)
     }
 
     override fun onStop() {
         super.onStop()
+        activityAcikMi = false
         if (mAuthListener != null) {
             FirebaseAuth.getInstance().removeAuthStateListener(mAuthListener!!)
         }
@@ -257,43 +401,4 @@ class SohbetOdasiActivity : AppCompatActivity() {
             finish()
         }
     }
-
-    /*private fun sohbetOdasiMesajlariGetir() {
-        var secilenSohbetOdasiID = intent.getStringExtra("sohbetOdasiId")
-        tumMesajlar = ArrayList<SohbetMesaj>()
-
-        var ref = FirebaseDatabase.getInstance().reference
-
-        var sorgu = ref.child("sohbet_odasi")
-            .child(secilenSohbetOdasiID)
-            .child("sohbet_odasi_mesajlari")
-
-        sorgu.addListenerForSingleValueEvent(object : ValueEventListener {
-            override fun onCancelled(p0: DatabaseError) {
-
-            }
-
-            override fun onDataChange(dataSnapshot: DataSnapshot) {
-                for (mesaj in dataSnapshot.children) {
-                    var eklenecekMesaj = SohbetMesaj()
-                    var kullaniciID = mesaj.getValue(SohbetMesaj::class.java)?.kullanici_id
-
-                    if (kullaniciID != null) {
-                        eklenecekMesaj.kullanici_id = kullaniciID
-                        eklenecekMesaj.mesaj = mesaj.getValue(SohbetMesaj::class.java)?.mesaj
-                        eklenecekMesaj.timestamp = mesaj.getValue(SohbetMesaj::class.java)?.timestamp
-
-                        tumMesajlar.add(eklenecekMesaj)
-                    } else {
-                        eklenecekMesaj.mesaj = mesaj.getValue(SohbetMesaj::class.java)?.mesaj
-                        eklenecekMesaj.timestamp = mesaj.getValue(SohbetMesaj::class.java)?.timestamp
-
-                        tumMesajlar.add(eklenecekMesaj)
-                    }
-
-                }
-            }
-        })
-
-    }*/
 }

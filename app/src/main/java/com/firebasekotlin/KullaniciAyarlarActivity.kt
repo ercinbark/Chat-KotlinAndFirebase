@@ -267,13 +267,11 @@ class KullaniciAyarlarActivity : AppCompatActivity(), ProfilResmiKaydetFragment.
         var izinler = arrayOf(
             android.Manifest.permission.READ_EXTERNAL_STORAGE,
             android.Manifest.permission.WRITE_EXTERNAL_STORAGE,
-            android.Manifest.permission.CAMERA
-        )
+            android.Manifest.permission.CAMERA)
 
         if (ContextCompat.checkSelfPermission(this, izinler[0]) == PackageManager.PERMISSION_GRANTED &&
             ContextCompat.checkSelfPermission(this, izinler[1]) == PackageManager.PERMISSION_GRANTED &&
-            ContextCompat.checkSelfPermission(this, izinler[2]) == PackageManager.PERMISSION_GRANTED
-        ) {
+            ContextCompat.checkSelfPermission(this, izinler[2]) == PackageManager.PERMISSION_GRANTED) {
             izinlerVerildi = true
         } else {
             ActivityCompat.requestPermissions(this, izinler, 150)
